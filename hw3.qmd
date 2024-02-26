@@ -51,15 +51,11 @@ Read the wine quality datasets from the specified URLs and store them in data fr
 
 ```{R}
 url1 <- "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-white.csv"
-
 url2 <- "https://archive.ics.uci.edu/ml/machine-learning-databases/wine-quality/winequality-red.csv"
 
 
 df1 <- read.csv(url1, sep = ';')
 df2 <- read.csv(url2, sep = ';')
-
-df1
-df2
 ```
 
 ---
@@ -125,7 +121,6 @@ Recall from STAT 200, the method to compute the $t$ statistic for the the differ
 ```{R}
 #difference of means for quality wines
 diff_mean <- (mean(subset(df, type == "white")$quality)) - (mean(subset(df, type == "red")$quality))
-diff_mean
 
 #pooled sample variance 
 var_red <- var(subset(df, type == "red")$quality)
@@ -133,11 +128,9 @@ var_white <- var(subset(df, type == "white")$quality)
 n_red <- sum(df$type == "red")
 n_white <- sum(df$type == "white")
 sp_squared <- ((n_red - 1) * var_red + (n_white - 1) * var_white) / (n_red + n_white - 2)
-sp_squared
 
 #t statistic 
 t1 <- diff_mean / sqrt(sp_squared * (1/n_red + 1/n_white))
-t1
 ```
 
 
@@ -153,7 +146,6 @@ Perform a two-sample t-test to compare the quality of white and red wines using 
 #two sample t test with equal variances
 t_result <- t.test(quality ~ type, data = df, var.equal = TRUE)
 t2 <- t_result$statistic
-t2
 ```
 
 ---
@@ -167,7 +159,6 @@ Fit a linear regression model to predict `quality` from `type` using the `lm()` 
 model <- lm(quality ~ type, data = df)
 summary_coef <- summary(model)$coefficients
 t3 <- summary_coef["typewhite", "t value"]  
-t3 
 ```
 
 
@@ -207,7 +198,7 @@ Fit a linear regression model with all predictors against the response variable 
 lm_summary <- tidy(lm(quality ~ ., data = df))
 lm_summary
 ```
-
+we can conclude that certian predictors are statistically significant in predicting wine qualiry (ones with low p values). 
 
 ---
 
@@ -228,7 +219,7 @@ model_total_sulfur_dioxide <- lm(quality ~ total_sulfur_dioxide, data = df)
 summary(model_total_sulfur_dioxide)
 ```
 
-
+the summaries for the simple linear regression models will only contain information about the specific predictor used in each model. this approach helps understand the impact of each predictor on the response variable, whereas in the multiple regression model we saw the joint impact of all the predictors. 
 ---
 
 ###### 2.3 (5 points)
@@ -254,7 +245,7 @@ Compute the variance inflation factor (VIF) for each predictor in the full model
 
 ```{R}
 #VIF
-lm(quality ~ ., data = df)
+lm_model = lm(quality ~ ., data = df)
 vif_scores <- vif(lm_model)
 vif_scores
 ```
@@ -450,7 +441,7 @@ Use `map()` and `lm()` to fit a linear regression model to each formula in `form
 
 ```{R}
 models <- map(formulas, ~ lm(.x, data = df) %>% broom::glance())
-summaries <- bind_rows(model_summaries)
+summaries <- bind_rows(models)
 summaries
 ```
 
@@ -465,18 +456,18 @@ Extract the `adj.r.squared` values from `summaries` and use them to identify the
 
 ```{R}
 #identifying formula with highest adjusted R squared value
-adj_r_squared_values <- map_dbl(summaries, "adj.r.squared")
-index_highest_adj_r_squared <- which.max(adj_r_squared_values)
-formula_with_highest_adj_r_squared <- formulas[index_highest_adj_r_squared]
+#adj_r_squared_values <- map_dbl(summaries, "adj.r.squared")
+#index_highest_adj_r_squared <- which.max(adj_r_squared_values)
+#formula_with_highest_adj_r_squared <- formulas[index_highest_adj_r_squared]
 
-formula_with_highest_adj_r_squared
-adj_r_squared_values[index_highest_adj_r_squared]
+#formula_with_highest_adj_r_squared
+#adj_r_squared_values[index_highest_adj_r_squared]
 ```
 
 Store resulting formula as a variable called `rsq_formula`.
 
 ```{R}
-rsq_formula <- formula_with_highest_adj_r_squared
+#rsq_formula <- formula_with_highest_adj_r_squared
 ```
 
 ---
@@ -487,19 +478,19 @@ Extract the `AIC` values from `summaries` and use them to identify the formula w
 
 
 ```{R}
-aic_values <- map_dbl(summaries, "AIC")
-index_lowest_aic <- which.min(aic_values)
-formula_with_lowest_aic <- formulas[index_lowest_aic]
+#aic_values <- map_dbl(summaries, "AIC")
+#index_lowest_aic <- which.min(aic_values)
+#formula_with_lowest_aic <- formulas[index_lowest_aic]
 
-formula_with_lowest_aic
-aic_values[index_lowest_aic]
+#formula_with_lowest_aic
+#aic_values[index_lowest_aic]
 ```
 
 Store resulting formula as a variable called `aic_formula`.
 
 
 ```{R}
-aic_formula <- formula_with_lowest_aic
+#aic_formula <- formula_with_lowest_aic
 ```
 
 ---
@@ -509,19 +500,19 @@ aic_formula <- formula_with_lowest_aic
 Combine all formulas shortlisted into a single vector called `final_formulas`.
 
 ```{R}
-null_formula <- formula(null_model)
-full_formula <- formula(full_model)
-
-final_formulas <- c(
-  null_formula,
-  full_formula,
-  backward_formula,
-  forward_formula,
-  lasso_formula, 
-  ridge_formula,
-  rsq_formula,
-  aic_formula
-)
+# null_formula <- formula(null_model)
+# full_formula <- formula(full_model)
+# 
+# final_formulas <- c(
+#   null_formula,
+#   full_formula,
+#   backward_formula,
+#   forward_formula,
+#   lasso_formula, 
+#   ridge_formula,
+#   rsq_formula,
+#   aic_formula
+# )
 ```
 
 * Are `aic_formula` and `rsq_formula` the same? How do they differ from the formulas shortlisted in question 3?
@@ -540,17 +531,11 @@ Use `map()` and `glance()` to extract the `sigma, adj.r.squared, AIC, df`, and `
 ```{R}
 # summary_table <- map(
 #   final_formulas, 
-#   \(x) ... # Insert your code here
+#   ~ lm(.x, data = df) 
+#   %>% broom::glance()
 # ) %>% bind_rows()
-
-
-summary_table <- map(
-  final_formulas, 
-  ~ lm(.x, data = df) 
-  %>% broom::glance()
-) %>% bind_rows()
-
-summary_table %>% knitr::kable()
+# 
+# summary_table %>% knitr::kable()
 ```
 
 
